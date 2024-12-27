@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diabetes-model
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: diabetes-model
+  template:
+    metadata:
+      labels:
+        app: diabetes-model
+    spec:
+      containers:
+      - name: model-server
+        image: diabetes_model:latest
+        imagePullPolicy: Never
+        env:
+          - name: GUNICORN_CMD_ARGS
+            value: "--timeout 60 -k gevent --bind 0.0.0.0:8000"
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: diabetes-model-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 30000  
+  selector:
+    app: diabetes-model
