@@ -1,38 +1,25 @@
-import requests
-import numpy as np
-from sklearn.datasets import load_diabetes
 import json
 
-def test_model_endpoint():
+import requests
+from sklearn.datasets import load_diabetes
 
-    # after running docker run -p 8080:8080 diabetes_model
 
+def main():
     diabetes = load_diabetes()
-     
-    test_sample = diabetes.data[0:1]  
-    
-    inference_request = {
-        "inputs": test_sample.tolist()
-    }
-    
-    try:
+
+    test_sample = diabetes.data[0:1]
+
+    def predict(data):
         response = requests.post(
             "http://localhost:8080/invocations",
-            json=inference_request,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
+            data=json.dumps({"inputs": data}),
         )
-        
-        if response.status_code == 200:
-            prediction = response.json()
-            print("\nPrediction successful!")
-            print(f"Input features: {test_sample[0]}")
-            print(f"Predicted value: {prediction}")
-        else:
-            print(f"Error: Received status code {response.status_code}")
-            print(f"Response content: {response.text}")
-            
-    except requests.exceptions.ConnectionError:
-        print("Error: Could not connect to the model server. Is the container running?")
+        return response.json()
+
+    result = predict(test_sample.tolist())
+    print(result)
+
 
 if __name__ == "__main__":
-    test_model_endpoint()
+    main()
